@@ -14,13 +14,18 @@ Specify the attributes we want todo to have.
 */
 var Todo = mongoose.model('Todo', {
   text: {
-    type: String
+    type: String,
+    required: true,
+    minlength: 1,
+    trim: true
   },
   completed: {
-    type: Boolean
+    type: Boolean,
+    default: false
   },
   completedAt: {
-    type: Number
+    type: Number,
+    default: null
   }
 });
 
@@ -36,14 +41,21 @@ var Todo = mongoose.model('Todo', {
 //   console.log('Unable to save todo');
 // });
 
-var newTodo = new Todo({
-  text: 'workout',
-  completed: false,
-  completedAt: 20171030
+var User = mongoose.model('User', {
+  email: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 1
+  }
 });
 
-newTodo.save().then((doc) => {
+var newUser = new User({
+  email: '   ch2@example.com'
+});
+
+newUser.save().then((doc) => {
   console.log(doc);
 }, (err) => {
-  console.log('Unable to save todo');
+  console.log('Unable to save todo', err);
 });
