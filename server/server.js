@@ -13,7 +13,7 @@ var {User} = require('./models/user');
 var app = express();
 
 /*
-body-parser is going to take your JSON and convert
+body-parser is going to take your JSON (on the client side) and convert
 it into an object attaching it onto 'req' object.
 */
 app.use(bodyParser.json());
@@ -34,3 +34,5 @@ app.post('/todos', (req, res) => {
 app.listen(3000, () => {
   console.log('Started on port 3000');
 });
+
+module.exports = {app}; // for test purpose
