@@ -10,10 +10,20 @@ beforeEach will let us run some code before every single test,
 and it's only going to move on to the test case once we called 'done'.
 Which means we can do something asynchronous inside of the function.
 */
+
+// default todos
+const todos = [{
+  text: 'First test todo'
+}, {
+  text: 'Second test todo'
+}];
+
 // e.g. empty the database
 beforeEach((done) => {
   // remove({}) will wipe all of our todos.
-  Todo.remove({}).then(() => done());
+  Todo.remove({}).then(() => {
+    return Todo.insertMany(todos); // return a Promise so we can chain callbacks
+  }).then(() => done());
 });
 
 describe('POST /todos', () => {
@@ -40,7 +50,7 @@ describe('POST /todos', () => {
 
         // Todo.find() is similar to the MongoDB native find method.
         // we can call it with no arguments to fetch everything in that collection.
-        Todo.find().then((todos) => {
+        Todo.find({text}).then((todos) => {
           expect(todos.length).toBe(1); // assume there's nothing already in the database
           expect(todos[0].text).toBe(text);
           done();
@@ -65,9 +75,22 @@ describe('POST /todos', () => {
         }
 
         Todo.find().then((todos) => {
-          expect(todos.length).toBe(0);
+          expect(todos.length).toBe(2);
           done();
         }).catch((err) => done(err));
       });
+  });
+});
+
+describe('GET /todos', () => {
+
+  it('should get all todos', (done) => {
+    request(app)
+      .get('/todos')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todos.length).toBe(2);
+      })
+      .end(done);
   });
 });
