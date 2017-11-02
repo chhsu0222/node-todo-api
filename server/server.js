@@ -86,7 +86,7 @@ app.delete('/todos/:id', (req, res) => {
     }
 
     // if doc, send doc back  with 200
-    res.status(200).send(todo);
+    res.send({todo});
   }).catch((e) => {
     // 400 with empty body
     res.status(400).send();
