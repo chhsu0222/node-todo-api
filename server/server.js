@@ -55,25 +55,15 @@ app.get('/todos/:id', (req, res) => {
 
   // Valid id using isValid
   if (!ObjectID.isValid(id)) {
-    // 404 - send back empty body
-    console.log('Invalid Id');
     return res.status(404).send();
   }
 
-  // findById
   Todo.findById(id).then((todo) => {
-    // success
     if (!todo) {
-      // if no todo - send back 404 with empty body
-      console.log('Id not found');
       return res.status(404).send();
     }
-    // if todo - send it back
     res.send({todo});
   }, (e) => {
-    // error
-    console.log('Can\'t fetch todos');
-    // 400 - and send empty body back
     res.status(400).send();
   });
 });
