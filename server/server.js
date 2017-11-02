@@ -4,6 +4,7 @@ body-parser is a Node.js body parsing middleware.
 Parse incoming request bodies in a middleware before your handlers
 */
 var bodyParser = require('body-parser');
+const {ObjectID} = require('mongodb');
 
 // ES6 destructuring
 var {mongoose} = require('./db/mongoose');
@@ -37,6 +38,43 @@ app.get('/todos', (req, res) => {
     res.send({todos});
   }, (e) => {
     res.status(400).send(e);
+  });
+});
+
+// GET /todos/1234
+/*
+:id (colon followed by a name) is a URL parameter.
+It will create an 'id' variable on the req object.
+*/
+app.get('/todos/:id', (req, res) => {
+  /*
+  req.params will be an object having key value pairs.
+  Where the key is the URL parameter (e.g. {id: '1234'}).
+  */
+  var id = req.params.id;
+
+  // Valid id using isValid
+  if (!ObjectID.isValid(id)) {
+    // 404 - send back empty body
+    console.log('Invalid Id');
+    return res.status(404).send();
+  }
+
+  // findById
+  Todo.findById(id).then((todo) => {
+    // success
+    if (!todo) {
+      // if no todo - send back 404 with empty body
+      console.log('Id not found');
+      return res.status(404).send();
+    }
+    // if todo - send it back
+    res.send({todo});
+  }, (e) => {
+    // error
+    console.log('Can\'t fetch todos');
+    // 400 - and send empty body back
+    res.status(400).send();
   });
 });
 
