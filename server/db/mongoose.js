@@ -5,7 +5,7 @@ mongoose.Promise = global.Promise;
 mongoose is going to be waiting for that connection before it
 ever actually tries to make the query.
 */
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/TodoApp');
+mongoose.connect(process.env.MONGODB_URI);
 
 module.exports = {
   mongoose
