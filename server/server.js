@@ -1,9 +1,10 @@
-var express = require('express');
+const _ = require('lodash');
+const express = require('express');
 /*
 body-parser is a Node.js body parsing middleware.
 Parse incoming request bodies in a middleware before your handlers
 */
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 
 // ES6 destructuring
@@ -89,6 +90,35 @@ app.delete('/todos/:id', (req, res) => {
     res.send({todo});
   }).catch((e) => {
     // 400 with empty body
+    res.status(400).send();
+  });
+});
+
+app.patch('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  // _.pick creates an object composed of the picked object properties.
+  // we don't want the user to be able to update anything they choose.
+  var body = _.pick(req.body, ['text', 'completed']);
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  if (_.isBoolean(body.completed) && body.completed) {
+    body.completedAt = new Date().getTime();
+  } else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  // new : true is equivalent to returnOriginal: false
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
+    }
+
+    res.send({todo});
+  }).catch((e) => {
     res.status(400).send();
   });
 });
