@@ -128,8 +128,16 @@ app.patch('/todos/:id', (req, res) => {
 app.post('/users', (req, res) => {
   var body = _.pick(req.body, ['email', 'password']);
   var user = new User(body);
-  user.save().then((user) => {
-    res.send(user);
+  user.save().then(() => {
+    return user.generateAuthToken(); // We're expecting a chaining Promise.
+  }).then((token) => {
+    // The argument 'token' is passed by 'return token' in user.generateAuthToken()
+    // the user object down below was already updated (tokens)
+    res.header('x-auth', token).send(user);
+    /*
+    'x-' means it's not mecessarily a header that HTTP supports by default
+    a custom header.
+    */
   }).catch((e) => {
     res.status(400).send(e);
   });
