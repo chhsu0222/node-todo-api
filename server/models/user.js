@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema({
   email: {
@@ -92,6 +93,27 @@ UserSchema.statics.findByToken = function (token) {
     'tokens.access': 'auth' // quotes are required when we have a dot in the value
   });
 };
+
+/*
+This (pre) is going to run some code before a given event
+the event we want to run code before is the 'save' event
+*/
+UserSchema.pre('save', function (next) {
+  var user = this;
+
+  // avoid hashing password multiple times
+  // isModified takes an individual property
+  if (user.isModified('password')) {
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        user.password = hash;
+        next(); // complete the middleware
+      });
+    });
+  } else {
+    next();
+  }
+});
 
 var User = mongoose.model('User', UserSchema);
 
