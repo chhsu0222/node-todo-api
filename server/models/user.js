@@ -34,6 +34,7 @@ var UserSchema = new mongoose.Schema({
 
 // instance methods has access to the individual document
 UserSchema.methods.toJSON = function () {
+  // override the toJSON method (when mongoose model is converted into a JSON value)
   var user = this;
   // taking mongoose variable (user) and converting it into a regular object
   var userObject = user.toObject();
@@ -58,6 +59,37 @@ UserSchema.methods.generateAuthToken = function() {
     In the server file we can grab the token by tacking on a then callback
     getting access to the token and then responding inside of the callback function.
     */
+  });
+};
+
+/*
+model method (we don't need an instance to use model method).
+model methods get called with the model as the 'this' binding.
+*/
+UserSchema.statics.findByToken = function (token) {
+  var User = this; // this binds the model
+  var decoded;
+
+  // jwt.verify() will throw an error if anything goes wrong (try & catch)
+  try {
+    decoded = jwt.verify(token, 'abc123');
+  } catch (e) {
+    /*
+    This Promise will get returned from findByToken.
+    So the then success case in server.js will never fire.
+    The catch callback will though.
+    */
+    // return new Promise((resolve, reject) => {
+    //   reject();
+    // });
+    return Promise.reject(); // same as above code
+  }
+
+  // return a Promise in order to add some chaining
+  return User.findOne({
+    '_id': decoded._id,  // same as _id: decoded._id (quotes are not necessary)
+    'tokens.token': token, // query a nested document
+    'tokens.access': 'auth' // quotes are required when we have a dot in the value
   });
 };
 
