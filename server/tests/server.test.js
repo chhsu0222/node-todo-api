@@ -5,31 +5,18 @@ const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
-
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 /*
 beforeEach will let us run some code before every single test,
 and it's only going to move on to the test case once we called 'done'.
 Which means we can do something asynchronous inside of the function.
 */
 
-// default todos
-const todos = [{
-  _id: new ObjectID(),
-  text: 'First test todo'
-}, {
-  _id: new ObjectID(),
-  text: 'Second test todo',
-  completed: true,
-  completedAt: 333
-}];
+
 
 // e.g. empty the database
-beforeEach((done) => {
-  // remove({}) will wipe all of our todos.
-  Todo.remove({}).then(() => {
-    return Todo.insertMany(todos); // return a Promise so we can chain callbacks
-  }).then(() => done());
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
   it('should create a new todo', (done) => {
