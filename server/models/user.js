@@ -63,6 +63,18 @@ UserSchema.methods.generateAuthToken = function() {
   });
 };
 
+UserSchema.methods.removeToken = function (token) {
+  var user = this;
+  // $pull removes items from an array that match a specified condition.
+  return user.update({
+    $pull: {
+      tokens: {
+        token: token
+      }
+    }
+  });
+};
+
 /*
 model method (we don't need an instance to use model method).
 model methods get called with the model as the 'this' binding.
