@@ -55,7 +55,7 @@ app.get('/todos', authenticate, (req, res) => {
 :id (colon followed by a name) is a URL parameter.
 It will create an 'id' variable on the req object.
 */
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
   /*
   req.params will be an object having key value pairs.
   Where the key is the URL parameter (e.g. {id: '1234'}).
@@ -67,7 +67,10 @@ app.get('/todos/:id', (req, res) => {
     return res.status(404).send();
   }
 
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -77,7 +80,7 @@ app.get('/todos/:id', (req, res) => {
   });
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   // get the id
   var id = req.params.id;
 
@@ -87,7 +90,10 @@ app.delete('/todos/:id', (req, res) => {
   }
 
   // remove todo by id
-  Todo.findByIdAndRemove(id).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       // if no doc, send 404
       return res.status(404).send();
@@ -101,7 +107,7 @@ app.delete('/todos/:id', (req, res) => {
   });
 });
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
   // _.pick creates an object composed of the picked object properties.
   // we don't want the user to be able to update anything they choose.
@@ -119,7 +125,10 @@ app.patch('/todos/:id', (req, res) => {
   }
 
   // new : true is equivalent to returnOriginal: false
-  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+  Todo.findOneAndUpdate({
+    _id: id,
+    _creator: req.user._id
+  }, {$set: body}, {new: true}).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
