@@ -25,9 +25,10 @@ it into an object attaching it onto 'req' object.
 */
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
   var todo = new Todo({
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id
   });
 
   todo.save().then((doc) => {
@@ -38,9 +39,11 @@ app.post('/todos', (req, res) => {
 
 });
 
-app.get('/todos', (req, res) => {
-  // to fetch everything in todo collection.
-  Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+  // to fetch everything belong to the user in todo collection.
+  Todo.find({
+    _creator: req.user._id
+  }).then((todos) => {
     res.send({todos});
   }, (e) => {
     res.status(400).send(e);
