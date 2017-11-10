@@ -49,7 +49,7 @@ UserSchema.methods.generateAuthToken = function() {
   */
   var user = this;
   var access = 'auth';
-  var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
+  var token = jwt.sign({_id: user._id.toHexString(), access}, process.env.JWT_SECRET).toString();
   user.tokens.push({access, token});
 
   // save the data to database and return the token
@@ -85,7 +85,7 @@ UserSchema.statics.findByToken = function (token) {
 
   // jwt.verify() will throw an error if anything goes wrong (try & catch)
   try {
-    decoded = jwt.verify(token, 'abc123');
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (e) {
     /*
     This Promise will get returned from findByToken.
