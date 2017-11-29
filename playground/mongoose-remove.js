@@ -1,3 +1,5 @@
+require('./../server/config/config');
+
 const {ObjectID} = require('mongodb');
 
 const {mongoose} = require('./../server/db/mongoose');
@@ -12,6 +14,12 @@ const {User} = require('./../server/models/user');
 // Todo.findOneAndRemove
 // Todo.findByIdAndRemove
 
-Todo.findByIdAndRemove('59fac7a60488bf3df4991f4e').then((todo) => {
-  console.log(todo);
+Todo.findOneAndRemove({email: 'ch@example.com'}).then((todo) => {
+  console.log('Find the target:', todo);
+}, (error) => {
+  console.log('Error:', error);
 });
+
+// Todo.findByIdAndRemove('59fac7a60488bf3df4991f4e').then((todo) => {
+//   console.log(todo);
+// });
