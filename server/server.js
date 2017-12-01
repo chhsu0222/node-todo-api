@@ -80,15 +80,33 @@ app.get('/todos/:id', authenticate, (req, res) => {
   });
 });
 
-app.delete('/todos/:id', authenticate, (req, res) => {
-  // get the id
-  var id = req.params.id;
-
-  // validate the id
+app.delete('/todos/:id', authenticate, async (req, res) => {
+  const id = req.params.id;
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
 
+  try {
+    const todo = await Todo.findOneAndRemove({
+      _id: id,
+      _creator: req.user._id
+    });
+
+    if (!todo) {
+      return res.status(404).send();
+    }
+    res.send({todo});
+
+  } catch (e) {
+    res.status(400).send();
+  }
+  /*
+  // get the id
+  var id = req.params.id;
+  // validate the id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
   // remove todo by id
   Todo.findOneAndRemove({
     _id: id,
@@ -98,13 +116,13 @@ app.delete('/todos/:id', authenticate, (req, res) => {
       // if no doc, send 404
       return res.status(404).send();
     }
-
     // if doc, send doc back  with 200
     res.send({todo});
   }).catch((e) => {
     // 400 with empty body
     res.status(400).send();
   });
+  */
 });
 
 app.patch('/todos/:id', authenticate, (req, res) => {
@@ -139,7 +157,17 @@ app.patch('/todos/:id', authenticate, (req, res) => {
   });
 });
 
-app.post('/users', (req, res) => {
+app.post('/users', async (req, res) => {
+  const body = _.pick(req.body, ['email', 'password']);
+  const user = new User(body);
+  try {
+    await user.save();
+    const token = await user.generateAuthToken();
+    res.header('x-auth', token).send(user);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+  /*
   var body = _.pick(req.body, ['email', 'password']);
   var user = new User(body);
   user.save().then(() => {
@@ -148,22 +176,30 @@ app.post('/users', (req, res) => {
     // The argument 'token' is passed by 'return token' in user.generateAuthToken()
     // the user object down below was already updated (tokens)
     res.header('x-auth', token).send(user); // header('key', value)
-    /*
-    'x-' means it's not mecessarily a header that HTTP supports by default
-    a custom header.
-    */
+    // 'x-' means it's not mecessarily a header that HTTP supports by default a custom header.
   }).catch((e) => {
     res.status(400).send(e);
   });
+  */
 });
 
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
 });
 
-app.post('/users/login', (req, res) => {
-  var body = _.pick(req.body, ['email', 'password']);
+app.post('/users/login', async (req, res) => {
 
+  try {
+    const body = _.pick(req.body, ['email', 'password']);
+    const user = await User.findByCredentials(body.email, body.password);
+    const token = await user.generateAuthToken();
+    res.header('x-auth', token).send(user);
+  } catch (e) {
+    res.status(400).send();
+  }
+
+  /*
+  var body = _.pick(req.body, ['email', 'password']);
   User.findByCredentials(body.email, body.password).then((user) => {
     // use return so if there is anything wrong, the catch can handle it.
     return user.generateAuthToken().then((token) => {
@@ -172,15 +208,24 @@ app.post('/users/login', (req, res) => {
   }).catch((e) => {
     res.status(400).send();
   });
+  */
 });
 
-app.delete('/users/me/token', authenticate, (req, res) => {
+app.delete('/users/me/token', authenticate, async (req, res) => {
   // req.user & req.token will be updated in authenticate middleware
+  try {
+    await req.user.removeToken(req.token);
+    res.status(200).send();
+  } catch (e) {
+    res.status(400).send();
+  }
+  /*
   req.user.removeToken(req.token).then(() => {
     res.status(200).send();
   }, () => {
     res.status(400).send();
   });
+  */
 });
 
 app.listen(port, () => {
