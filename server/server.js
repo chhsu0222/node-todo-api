@@ -2,6 +2,7 @@ require('./config/config');
 
 const _ = require('lodash');
 const express = require('express');
+const path = require('path');
 /*
 body-parser is a Node.js body parsing middleware.
 Parse incoming request bodies in a middleware before your handlers
@@ -9,6 +10,8 @@ Parse incoming request bodies in a middleware before your handlers
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
+//const upload = multer({dest: 'uploads/'});
 
 // ES6 destructuring
 var {mongoose} = require('./db/mongoose');
@@ -18,6 +21,18 @@ var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 const port = process.env.PORT;
+
+const uploadPath = path.join(__dirname, '..', '/tmp/my-uploads');
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  }
+});
+
+const upload = multer({storage});
 
 /*
 body-parser is going to take your JSON (on the client side) and convert
@@ -226,6 +241,18 @@ app.delete('/users/me/token', authenticate, async (req, res) => {
     res.status(400).send();
   });
   */
+});
+
+app.post('/img/upload', upload.single('img'), (req, res) => {
+  //console.log(req);
+  console.log(req.body);
+  if (req.file) {
+    console.log(`${req.file.originalname} uploaded!!!`);
+    res.status(200).send();
+  } else {
+    console.log('no file uploaded');
+    res.status(400).send();
+  }
 });
 
 app.listen(port, () => {
