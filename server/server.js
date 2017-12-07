@@ -243,6 +243,7 @@ app.delete('/users/me/token', authenticate, async (req, res) => {
   */
 });
 
+// upload image
 app.post('/img/upload', upload.single('img'), (req, res) => {
   //console.log(req);
   console.log(req.body);
@@ -253,6 +254,12 @@ app.post('/img/upload', upload.single('img'), (req, res) => {
     console.log('no file uploaded');
     res.status(400).send();
   }
+});
+
+// download image
+app.post('/img/download', (req, res) => {
+  const targetImg = uploadPath + '\\' + req.body.userId + '.jpg';
+  res.download(targetImg);
 });
 
 app.listen(port, () => {
